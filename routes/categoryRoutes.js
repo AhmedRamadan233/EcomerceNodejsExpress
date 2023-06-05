@@ -35,7 +35,12 @@ router
 router
   .route("/:id")
   .get(getCategoryByIdValidator, getCategoryById)
-  .put(UpdateCategoryValidator, updateCategory)
+  .put(
+    uploadCategoryImage,
+    resizeImage,
+    UpdateCategoryValidator,
+    updateCategory
+  )
   .delete(DeleteCategoryValidator, deleteCategory);
 
 module.exports = router;

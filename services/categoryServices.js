@@ -2,43 +2,17 @@
 const slugify = require("slugify");
 const { v4: uuidv4 } = require("uuid");
 const asyncHandler = require("express-async-handler");
-const multer = require("multer");
-// eslint-disable-next-line import/no-extraneous-dependencies
 const sharp = require("sharp");
 
 // require filesystem
 const Category = require("../models/categoryModel");
 const ApiError = require("../utils/apiErrors");
+const { uploadImage } = require("../middlewares/uploadImageMiddleware");
 
 // eslint-disable-next-line import/extensions
 const ApiFeatures = require("../utils/apiFeatures.js");
 
-// DiskStorage
-// const multerStorage = multer.diskStorage({
-//   destination: function (req, file, callback) {
-//     callback(null, "uploads/categories");
-//   },
-//   filename: function (req, file, callback) {
-//     const extension = file.mimetype.split("/")[1];
-// const fileName = `category-${uuidv4()}-${Date.now()}.${extension}`;
-//     callback(null, fileName);
-//   },
-// });
-
-// memoy Storage
-const multerStorage = multer.memoryStorage();
-
-// filters
-const multerFilter = (req, file, callback) => {
-  if (file.mimetype.startsWith("image")) {
-    callback(null, true);
-  } else {
-    callback(new ApiError(`Only images are allowed`, 404));
-  }
-};
-const upload = multer({ storage: multerStorage, fileFilter: multerFilter });
-
-exports.uploadCategoryImage = upload.single("image");
+exports.uploadCategoryImage = uploadImage("image");
 exports.resizeImage = asyncHandler(async (req, res, next) => {
   if (!req.file) {
     return next(new ApiError("No image file provided", 400));
@@ -104,10 +78,10 @@ exports.createCategory = asyncHandler(async (req, res, next) => {
 // @access Private
 exports.updateCategory = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
-  const { name } = req.body;
+  const { name, image } = req.body;
   const category = await Category.findOneAndUpdate(
     { _id: id },
-    { name, slug: slugify(name) }, // Update both name and slug fields
+    { name, slug: slugify(name), image }, // Update both name and slug fields
     { new: true }
   );
   if (!category) {
@@ -127,3 +101,30 @@ exports.deleteCategory = asyncHandler(async (req, res, next) => {
   }
   res.json({ data: "deleted sucessfuly" });
 });
+
+// memoy Storage
+// const multerStorage = multer.memoryStorage();
+
+// filters
+// const multerFilter = (req, file, callback) => {
+//   if (file.mimetype.startsWith("image")) {
+//     callback(null, true);
+//   } else {
+//     callback(new ApiError(`Only images are allowed`, 404));
+//   }
+// };
+// const upload = multer({ storage: multerStorage, fileFilter: multerFilter });
+
+// exports.uploadCategoryImage = upload.single("image");
+
+// DiskStorage
+// const multerStorage = multer.diskStorage({
+//   destination: function (req, file, callback) {
+//     callback(null, "uploads/categories");
+//   },
+//   filename: function (req, file, callback) {
+//     const extension = file.mimetype.split("/")[1];
+// const fileName = `category-${uuidv4()}-${Date.now()}.${extension}`;
+//     callback(null, fileName);
+//   },
+// });

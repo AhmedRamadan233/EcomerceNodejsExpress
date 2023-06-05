@@ -1,8 +1,30 @@
 const slugify = require("slugify");
 const asyncHandler = require("express-async-handler");
+const sharp = require("sharp");
+const { v4: uuidv4 } = require("uuid");
 const Brand = require("../models/brandModel");
 const ApiError = require("../utils/apiErrors");
 const ApiFeatures = require("../utils/apiFeatures");
+
+const { uploadImage } = require("../middlewares/uploadImageMiddleware");
+
+exports.uploadBrandImage = uploadImage("image");
+exports.resizeImage = asyncHandler(async (req, res, next) => {
+  if (!req.file) {
+    return next(new ApiError("No image file provided", 400));
+  }
+  const fileName = `brand-${uuidv4()}-${Date.now()}.jpeg`;
+  await sharp(req.file.buffer)
+    .resize(600, 600)
+    .toFormat("jpeg")
+    .jpeg({ quality: 90 })
+    .toFile(`uploads/brands/${fileName}`);
+
+  // Save the image file name in the request body
+  req.body.image = fileName;
+
+  next();
+});
 
 // @des Get all Brand
 // @route get /api/vi/Brands
@@ -42,8 +64,12 @@ exports.getBrandById = asyncHandler(async (req, res, next) => {
 // @route POST /api/vi/Brands
 // @access Private
 exports.createBrand = asyncHandler(async (req, res, next) => {
-  const { name } = req.body;
-  const createBrand = await Brand.create({ name, slug: slugify(name) });
+  const { name, image } = req.body;
+  const createBrand = await Brand.create({
+    name,
+    slug: slugify(name),
+    image,
+  });
   res.status(201).json({ data: createBrand });
 });
 
@@ -52,10 +78,10 @@ exports.createBrand = asyncHandler(async (req, res, next) => {
 // @access Private
 exports.updateBrand = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
-  const { name } = req.body;
+  const { name, image } = req.body;
   const updateBrand = await Brand.findOneAndUpdate(
     { _id: id },
-    { name, slug: slugify(name) }, // Update both name and slug fields
+    { name, slug: slugify(name), image }, // Update both name and slug fields
     { new: true }
   );
   if (!Brand) {
