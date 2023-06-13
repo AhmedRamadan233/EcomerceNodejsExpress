@@ -1,9 +1,79 @@
 const slugify = require("slugify");
 const asyncHandler = require("express-async-handler");
+const multer = require("multer");
+const sharp = require("sharp");
+const { v4: uuidv4 } = require("uuid");
+
 const Product = require("../models/productModel");
 
 const ApiError = require("../utils/apiErrors");
 const ApiFeatures = require("../utils/apiFeatures");
+
+const multerStorage = multer.memoryStorage();
+
+// filters
+const multerFilter = (req, file, callback) => {
+  if (file.mimetype.startsWith("image")) {
+    callback(null, true);
+  } else {
+    callback(new ApiError(`Only images are allowed`, 404));
+  }
+};
+const upload = multer({ storage: multerStorage, fileFilter: multerFilter });
+
+exports.uploadProductImages = upload.fields([
+  {
+    name: "imageCover",
+    maxCount: 1,
+  },
+  {
+    name: "images",
+    maxCount: 5,
+  },
+]);
+
+exports.resizeProducrImages = asyncHandler(async (req, res, next) => {
+  if (!req.files.imageCover || !req.files.images) {
+    return next(new ApiError("No image files provided", 400));
+  }
+
+  const imageCoverFileName = `product-${uuidv4()}-${Date.now()}-cover.jpeg`;
+  await sharp(req.files.imageCover[0].buffer)
+    .resize(2000, 1333)
+    .toFormat("jpeg")
+    .jpeg({ quality: 90 })
+    .toFile(`uploads/products/${imageCoverFileName}`);
+
+  // Save the image file name in the request body
+  req.body.imageCover = imageCoverFileName;
+  // to save url 
+  // req.body.imageCover = req.hostname + imageCoverFileName;
+
+  const imagesFileName = `product-${uuidv4()}-${Date.now()}-images.jpeg`;
+  const resizedImages = [];
+
+  for (let i = 0; i < req.files.images.length; i++) {
+    const image = req.files.images[i];
+    const resizedFileName = `product-${uuidv4()}-${Date.now()}-image-${i + 1}.jpeg`;
+
+    // eslint-disable-next-line no-await-in-loop
+    await sharp(image.buffer)
+      .resize(600, 600)
+      .toFormat("jpeg")
+      .jpeg({ quality: 90 })
+      .toFile(`uploads/products/${resizedFileName}`);
+
+    resizedImages.push(resizedFileName);
+    // to save url 
+    // resizedImages.push(req.hostname + resizedFileName);
+  }
+
+  // Save the image file names in the request body
+  req.body.images = resizedImages;
+
+  next();
+});
+
 
 // @des Get all Product
 // @route get /api/vi/categories

@@ -81,6 +81,25 @@ const productSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+
+productSchema.post("init", (doc) => {
+  //set image url or base url + name
+  if (doc.image) {
+    const imgUrl = `http://localhost:8080/products/${doc.image}`;
+    doc.image = imgUrl;
+  }
+});
+
+productSchema.post("save",  (doc)=> {
+  if (doc.image) {
+    const imgUrl = `http://localhost:8080/products/${doc.image}`;
+    doc.image = imgUrl;
+  }
+});
+;
+
+
+
 const ProductModel = mongoose.model("Product", productSchema);
 
 module.exports = ProductModel;
