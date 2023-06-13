@@ -22,7 +22,8 @@ exports.resizeImage = asyncHandler(async (req, res, next) => {
 
   // Save the image file name in the request body
   req.body.image = fileName;
-
+  // to save url 
+  // req.body.image = req.hostname+fileName;
   next();
 });
 

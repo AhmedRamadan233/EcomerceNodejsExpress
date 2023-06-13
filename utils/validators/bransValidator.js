@@ -20,6 +20,7 @@ exports.createBrandValidator = [
 exports.UpdateBrandValidator = [
   check("id").isMongoId().withMessage("Invalid Brand Id Format"),
   check("name")
+    .optional()
     .notEmpty()
     .withMessage("Field Of Name Is Empty")
     .isLength({ min: 3 })

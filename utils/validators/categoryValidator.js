@@ -20,6 +20,7 @@ exports.createCategoryValidator = [
 exports.UpdateCategoryValidator = [
   check("id").isMongoId().withMessage("Invalid Category Id Format"),
   check("name")
+    .optional()
     .notEmpty()
     .withMessage("Field Of Name Is Empty")
     .isLength({ min: 3 })

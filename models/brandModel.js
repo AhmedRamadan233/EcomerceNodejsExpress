@@ -16,7 +16,21 @@ const BrandSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+BrandSchema.post('init' ,  (doc)=>{
+  //set image url or base url + name
+  if(doc.image){
+    const imgUrl = `http://localhost:8080/brands/${doc.image}`;
+    doc.image = imgUrl;
+  }
+});
 
+BrandSchema.post('save' ,  (doc)=>{
+  //set image url or base url + name
+  if(doc.image){
+    const imgUrl = `http://localhost:8080/brands/${doc.image}`;
+    doc.image = imgUrl;
+  }
+});
 const BrandModel = mongoose.model("Brand", BrandSchema);
 
 module.exports = BrandModel;

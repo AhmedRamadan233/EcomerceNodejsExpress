@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 
-
 const CategorySchema = new mongoose.Schema(
   {
     name: {
@@ -17,6 +16,22 @@ const CategorySchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+CategorySchema.post("init", (doc) => {
+  //set image url or base url + name
+  if (doc.image) {
+    const imgUrl = `http://localhost:8080/categories/${doc.image}`;
+    doc.image = imgUrl;
+  }
+});
+
+CategorySchema.post("save", (doc) => {
+  //set image url or base url + name
+  if (doc.image) {
+    const imgUrl = `http://localhost:8080/categories/${doc.image}`;
+    doc.image = imgUrl;
+  }
+});
 
 const CategoryModel = mongoose.model("Category", CategorySchema);
 
