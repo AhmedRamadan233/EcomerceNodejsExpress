@@ -19,5 +19,23 @@ const multerFilter = (req, file, callback) => {
 const upload = multer({ storage: multerStorage, fileFilter: multerFilter });
 
 return upload.single(filedName);
-}
-// memoy Storage
+};
+
+
+
+
+
+exports.uploadMixOfImages = (arrayOfFields)=>{
+  const multerStorage = multer.memoryStorage();
+
+  const multerFilter = (req, file, callback) => {
+    if (file.mimetype.startsWith("image")) {
+      callback(null, true);
+    } else {
+      callback(new ApiError(`Only images are allowed`, 404));
+    }
+  };
+  const upload = multer({ storage: multerStorage, fileFilter: multerFilter });
+return upload.fields(arrayOfFields);
+
+};

@@ -82,18 +82,31 @@ const productSchema = new mongoose.Schema(
 );
 
 
-productSchema.post("init", (doc) => {
-  //set image url or base url + name
-  if (doc.image) {
-    const imgUrl = `http://localhost:8080/products/${doc.image}`;
-    doc.image = imgUrl;
+productSchema.post("init",  (doc)=> {
+  if (doc.imageCover) {
+    const imgCoverUrl = `http://localhost:8080/products/${doc.imageCover}`;
+    doc.imageCover = imgCoverUrl;
+  }
+
+  if (doc.images && doc.images.length > 0) {
+    doc.images = doc.images.map((image) => {
+      const imgUrl = `http://localhost:8080/products/${image}`;
+      return imgUrl;
+    });
   }
 });
 
+
 productSchema.post("save",  (doc)=> {
-  if (doc.image) {
-    const imgUrl = `http://localhost:8080/products/${doc.image}`;
-    doc.image = imgUrl;
+  if (doc.imageCover) {
+    const imgUrl = `http://localhost:8080/products/${doc.imageCover}`;
+    doc.imageCover = imgUrl;
+  }
+  if (doc.images && doc.images.length > 0) {
+    doc.images = doc.images.map((image) => {
+      const imgUrl = `http://localhost:8080/products/${image}`;
+      return imgUrl;
+    });
   }
 });
 ;

@@ -1,27 +1,14 @@
 const slugify = require("slugify");
 const asyncHandler = require("express-async-handler");
-const multer = require("multer");
 const sharp = require("sharp");
 const { v4: uuidv4 } = require("uuid");
-
 const Product = require("../models/productModel");
-
 const ApiError = require("../utils/apiErrors");
 const ApiFeatures = require("../utils/apiFeatures");
+const { uploadMixOfImages } = require("../middlewares/uploadImageMiddleware");
 
-const multerStorage = multer.memoryStorage();
 
-// filters
-const multerFilter = (req, file, callback) => {
-  if (file.mimetype.startsWith("image")) {
-    callback(null, true);
-  } else {
-    callback(new ApiError(`Only images are allowed`, 404));
-  }
-};
-const upload = multer({ storage: multerStorage, fileFilter: multerFilter });
-
-exports.uploadProductImages = upload.fields([
+exports.uploadProductImages = uploadMixOfImages([
   {
     name: "imageCover",
     maxCount: 1,
@@ -46,7 +33,7 @@ exports.resizeProducrImages = asyncHandler(async (req, res, next) => {
 
   // Save the image file name in the request body
   req.body.imageCover = imageCoverFileName;
-  // to save url 
+  // to save url
   // req.body.imageCover = req.hostname + imageCoverFileName;
 
   const imagesFileName = `product-${uuidv4()}-${Date.now()}-images.jpeg`;
@@ -54,7 +41,9 @@ exports.resizeProducrImages = asyncHandler(async (req, res, next) => {
 
   for (let i = 0; i < req.files.images.length; i++) {
     const image = req.files.images[i];
-    const resizedFileName = `product-${uuidv4()}-${Date.now()}-image-${i + 1}.jpeg`;
+    const resizedFileName = `product-${uuidv4()}-${Date.now()}-image-${
+      i + 1
+    }.jpeg`;
 
     // eslint-disable-next-line no-await-in-loop
     await sharp(image.buffer)
@@ -64,7 +53,7 @@ exports.resizeProducrImages = asyncHandler(async (req, res, next) => {
       .toFile(`uploads/products/${resizedFileName}`);
 
     resizedImages.push(resizedFileName);
-    // to save url 
+    // to save url
     // resizedImages.push(req.hostname + resizedFileName);
   }
 
@@ -73,7 +62,6 @@ exports.resizeProducrImages = asyncHandler(async (req, res, next) => {
 
   next();
 });
-
 
 // @des Get all Product
 // @route get /api/vi/categories
